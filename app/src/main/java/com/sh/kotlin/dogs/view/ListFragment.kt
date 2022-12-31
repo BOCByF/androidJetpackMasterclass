@@ -29,14 +29,5 @@ class ListFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_list, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        buttonDetials.setOnClickListener {
-            val navDir = ListFragmentDirections.actionDetailFragment()
-            Navigation.findNavController(it).navigate(navDir)
-        }
-    }
-
 
 }
