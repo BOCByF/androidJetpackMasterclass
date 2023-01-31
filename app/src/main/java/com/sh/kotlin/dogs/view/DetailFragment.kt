@@ -41,6 +41,7 @@ class DetailFragment : Fragment() {
 
         arguments?.let {
             dogUuid = DetailFragmentArgs.fromBundle(it).dogUuid
+
         }
 
         observeViewModel()

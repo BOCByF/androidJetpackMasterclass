@@ -3,25 +3,53 @@ package com.sh.kotlin.dogs.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.sh.kotlin.dogs.model.DogBreed
+import com.sh.kotlin.dogs.model.DogsApiService
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.observers.DisposableSingleObserver
+import io.reactivex.schedulers.Schedulers
 
 class ListViewModel: ViewModel() {
+
+    private val dogsService = DogsApiService()
+    private val disposable = CompositeDisposable()
 
     val dogs = MutableLiveData<List<DogBreed>>()
     val dogsLoadError = MutableLiveData<Boolean>()
     val loading = MutableLiveData<Boolean>()
 
     fun refresh() {
-        val dog1 = DogBreed("1", "Corgi", "15 years", "breedGroup", "breedFor", "temperament", "imageUrl")
-        val dog2 = DogBreed("2", "breed2", "15 years", "breedGroup", "breedFor", "temperament", "imageUrl")
-        val dog3 = DogBreed("3", "breed3", "15 years", "breedGroup", "breedFor", "temperament", "imageUrl")
-
-        val dogList = arrayListOf<DogBreed>(dog1, dog2, dog3)
-
-        dogs.value = dogList
-        dogsLoadError.value = false
-        loading.value = false
+        fetchFromRemote()
 
     }
 
+    private fun fetchFromRemote() {
+        loading.value = true
+        disposable.add(
+            dogsService.getDogs()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(object: DisposableSingleObserver<List<DogBreed>>() {
+                    override fun onSuccess(dogList: List<DogBreed>) {
+                        dogs.value = dogList
+                        dogsLoadError.value = false
+                        loading.value = false
+                    }
+
+                    override fun onError(e: Throwable) {
+                        dogsLoadError.value = true
+                        loading.value = false
+                        e.printStackTrace()
+                    }
+
+                })
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable.clear()
+    }
 
 }
